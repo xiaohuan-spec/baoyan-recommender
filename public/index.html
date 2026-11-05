@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>保研志愿智能推荐</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="hero">
+    <h1>保研志愿智能推荐</h1>
+    <p>填写个人情况，获取为你定制的「冲 · 稳 · 保」院校推荐方案</p>
+  </header>
+
+  <main class="container">
+    <section id="form-section" class="card">
+      <h2 class="section-title">填写个人信息</h2>
+      <div id="form-banner" class="form-banner" role="alert"></div>
+
+      <form id="profile-form" novalidate>
+        <div class="form-grid">
+          <div class="form-item">
+            <label for="school">本科院校<em class="required">*</em></label>
+            <input type="text" id="school" name="school" placeholder="如：华中科技大学" autocomplete="off">
+            <p class="field-error" data-error-for="school"></p>
+          </div>
+          <div class="form-item">
+            <label for="major">本科专业<em class="required">*</em></label>
+            <input type="text" id="major" name="major" placeholder="如：计算机科学与技术" autocomplete="off">
+            <p class="field-error" data-error-for="major"></p>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-item">
+            <label for="rank">专业排名（位次）<em class="required">*</em></label>
+            <input type="number" id="rank" name="rank" min="1" step="1" placeholder="如：5">
+            <p class="field-error" data-error-for="rank"></p>
+          </div>
+          <div class="form-item">
+            <label for="totalStudents">专业总人数<em class="required">*</em></label>
+            <input type="number" id="totalStudents" name="totalStudents" min="1" step="1" placeholder="如：120">
+            <p class="hint">位次 / 总人数将换算为排名百分比参与评分</p>
+            <p class="field-error" data-error-for="totalStudents"></p>
+          </div>
+        </div>
+
+        <div class="form-item">
+          <label for="cet6">英语六级成绩<span class="optional">（选填）</span></label>
+          <input type="number" id="cet6" name="cet6" min="220" max="710" step="1" placeholder="未考可不填，范围 220 - 710">
+          <p class="field-error" data-error-for="cet6"></p>
+        </div>
+
+        <div class="form-item">
+          <div class="subform-head">
+            <label>竞赛经历<span class="optional">（选填，可添加多条）</span></label>
+            <button type="button" class="btn-light" id="add-competition">+ 添加竞赛</button>
+          </div>
+          <div id="competition-list" class="dynamic-list"></div>
+        </div>
+
+        <div class="form-item">
+          <div class="subform-head">
+            <label>科研经历<span class="optional">（选填，可添加多条）</span></label>
+            <button type="button" class="btn-light" id="add-research">+ 添加科研</button>
+          </div>
+          <div id="research-list" class="dynamic-list"></div>
+        </div>
+
+        <div class="form-item">
+          <label for="intendedMajor">意向专业<em class="required">*</em></label>
+          <input type="text" id="intendedMajor" name="intendedMajor" placeholder="如：计算机技术 / 电子信息" autocomplete="off">
+          <p class="field-error" data-error-for="intendedMajor"></p>
+        </div>
+
+        <div class="form-item">
+          <label>意向地区<span class="optional">（选填，可多选，不选则默认全国）</span></label>
+          <div id="region-chips" class="chips"></div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn-primary" id="submit-btn">生成推荐方案</button>
+        </div>
+      </form>
+    </section>
+
+    <section id="result-section" class="card hidden"></section>
+  </main>
+
+  <footer class="page-footer">
+    保研志愿智能推荐 · 框架阶段：学校数据库与评分 / 匹配算法待填充，推荐结果仅供参考
+  </footer>
+
+  <script src="js/result.js"></script>
+  <script src="js/form.js"></script>
+</body>
+</html>
