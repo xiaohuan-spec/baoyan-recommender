@@ -173,22 +173,38 @@
     }
 
     setLoading(true);
-    fetch('/api/recommend', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    })
-      .then(function (res) {
-        return res.json().then(function (body) { return { ok: res.ok, body: body }; });
+    Promise.resolve()
+      .then(function () {
+        var profile = LocalCore.normalizeProfile(data);
+        var check = LocalCore.validateProfile(profile);
+        if (!check.ok) {
+          throw new Error(check.message);
+        }
+        return Promise.all([
+          LocalScoring.calculateScore(profile),
+          LocalDatabase.getSchools()
+        ]).then(function (results) {
+          var score = results[0];
+          var schools = results[1];
+          var recommendations = LocalMatching.matchSchools(score, schools, profile);
+          return {
+            ok: true,
+            profile: profile,
+            score: score,
+            recommendations: recommendations,
+            meta: {
+              dataReady: LocalDatabase.isDataReady(),
+              schoolCount: schools.length,
+              message: LocalDatabase.isDataReady() ? '' : '学校数据库与评分/匹配算法尚未填充（当前为占位框架）'
+            }
+          };
+        });
       })
       .then(function (result) {
-        if (!result.ok || !result.body.ok) {
-          throw new Error(result.body.error || '请求失败，请稍后重试');
-        }
-        window.ResultView.render(result.body);
+        window.ResultView.render(result);
       })
       .catch(function (err) {
-        showFormError(err.message || '网络异常，请稍后重试');
+        showFormError(err.message || '生成失败，请稍后重试');
       })
       .finally(function () {
         setLoading(false);

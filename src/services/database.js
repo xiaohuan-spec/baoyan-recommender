@@ -1,12 +1,15 @@
 const fs = require('fs');
 const path = require('path');
 
-const DATA_FILE = path.join(__dirname, '..', 'data', 'schools.json');
+const DATA_FILE = path.join(__dirname, '..', '..', 'docs', 'data', 'schools.json');
 
 /*
  * 学校数据库服务 —— 占位框架（TODO：填充数据或升级为真实数据库）
  *
- * src/data/schools.json 每条数据结构（后续填充时遵循）：
+ * 数据文件与前端共用：docs/data/schools.json
+ * （浏览器端由 docs/js/database.js fetch 同一文件，保证静态 / 后端两种部署形态数据一致）
+ *
+ * 每条数据结构（后续填充时遵循）：
  *   {
  *     "name": "学校名称",
  *     "region": "所在地区（如：北京）",
