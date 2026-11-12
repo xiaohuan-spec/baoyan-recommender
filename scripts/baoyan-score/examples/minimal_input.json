@@ -1,0 +1,11 @@
+{
+  "school_name": "示例普通一本大学",
+  "undergraduate_major": "计算机科学与技术",
+  "ranking": {
+    "position": 10,
+    "total": 100
+  },
+  "english": [],
+  "competitions": [],
+  "research": []
+}

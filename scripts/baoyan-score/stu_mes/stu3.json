@@ -1,0 +1,58 @@
+{
+  "name": "学生3：普通一本前10%",
+  "school_name": "示例普通一本大学",
+  "undergraduate_major": "计算机科学与技术",
+  "target_major": "计算机科学与技术",
+  "ranking": {
+    "position": 10,
+    "total": 100
+  },
+  "english": [
+    {
+      "type": "CET4",
+      "score": 580
+    },
+    {
+      "type": "CET6",
+      "score": 560
+    }
+  ],
+  "competitions": [
+    {
+      "event": "示例算法竞赛",
+      "year": 2025,
+      "level": "国家级",
+      "prize": "三等奖"
+    },
+    {
+      "event": "示例算法竞赛",
+      "year": 2025,
+      "level": "省级",
+      "prize": "二等奖"
+    },
+    {
+      "event": "示例创新竞赛",
+      "year": 2025,
+      "level": "校级",
+      "prize": "一等奖"
+    }
+  ],
+  "research": [
+    {
+      "id": "paper-001",
+      "title": "示例机器学习论文",
+      "type": "期刊论文",
+      "status": "已发表",
+      "role": "第一作者",
+      "field": "机器学习"
+    },
+    {
+      "id": "project-001",
+      "title": "示例统计建模项目",
+      "type": "科研项目",
+      "status": "进行中",
+      "role": "参与者",
+      "field": "统计建模"
+    }
+  ]
+}

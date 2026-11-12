@@ -1,0 +1,163 @@
+{
+  "status": "ok",
+  "student_name": "学生1：211综合样例",
+  "rule_version": "experimental-1.0.0",
+  "school_data_version": "demo-1.0.0",
+  "major_data_version": "demo-1.0.0",
+  "total_score": 84.13,
+  "max_score": 100,
+  "known_dimensions_score": 84.13,
+  "scores": {
+    "education": {
+      "status": "ok",
+      "score": 16,
+      "max_score": 20,
+      "school_name": "示例211大学",
+      "school_tags": [
+        "211",
+        "双一流"
+      ],
+      "undergraduate_major": "计算机科学与技术",
+      "school_level": "B",
+      "major_level": "较强",
+      "school_points": 13,
+      "major_points": 3,
+      "reasons": [
+        "学校 B 档 13 分 + 本科专业 较强 档 3 分"
+      ]
+    },
+    "ranking": {
+      "status": "ok",
+      "score": 37.0,
+      "max_score": 40,
+      "position": 10,
+      "total": 100,
+      "ratio": 0.1,
+      "percentile_text": "前 10.00%",
+      "curve": "B:较强",
+      "reasons": [
+        "排名比例 = 10 / 100；使用 B:较强 曲线，节点之间线性插值"
+      ]
+    },
+    "english": {
+      "status": "ok",
+      "score": 17,
+      "max_score": 20,
+      "selected": {
+        "type": "CET6",
+        "original_score": 560,
+        "score": 17
+      },
+      "items": [
+        {
+          "type": "CET4",
+          "original_score": 580,
+          "score": 12
+        },
+        {
+          "type": "CET6",
+          "original_score": 560,
+          "score": 17
+        }
+      ],
+      "reasons": [
+        "所有考试分别按分数档位换算，取最高分；不累计"
+      ]
+    },
+    "competition": {
+      "status": "ok",
+      "score": 7.5,
+      "max_score": 10,
+      "raw_score": 7.5,
+      "capped": false,
+      "items": [
+        {
+          "event": "示例算法竞赛",
+          "year": 2025,
+          "level": "国家级",
+          "prize": "三等奖",
+          "base_score": 6,
+          "counted": true,
+          "score": 6,
+          "reason": "本赛事本年度最高奖项，纳入计分"
+        },
+        {
+          "event": "示例算法竞赛",
+          "year": 2025,
+          "level": "省级",
+          "prize": "二等奖",
+          "base_score": 3,
+          "counted": false,
+          "score": 0,
+          "reason": "同一赛事同一年重复奖项，不重复计分"
+        },
+        {
+          "event": "示例创新竞赛",
+          "year": 2025,
+          "level": "校级",
+          "prize": "一等奖",
+          "base_score": 1.5,
+          "counted": true,
+          "score": 1.5,
+          "reason": "本赛事本年度最高奖项，纳入计分"
+        }
+      ],
+      "reasons": [
+        "按赛事名称与年度去重后累计，最多 10 分"
+      ]
+    },
+    "research": {
+      "status": "ok",
+      "score": 6.63,
+      "max_score": 10,
+      "target_major_used": "计算机科学与技术",
+      "raw_score": 6.63,
+      "known_items_score": 6.63,
+      "capped": false,
+      "items": [
+        {
+          "id": "paper-001",
+          "title": "示例机器学习论文",
+          "type": "期刊论文",
+          "status": "已发表",
+          "role": "第一作者",
+          "field": "机器学习",
+          "base_score": 6,
+          "status_factor": 1,
+          "contribution_factor": 1,
+          "counted": true,
+          "match_level": "direct",
+          "match_factor": 1,
+          "score": 6,
+          "reason": "6 × 1 × 1 × 1 = 6.00"
+        },
+        {
+          "id": "project-001",
+          "title": "示例统计建模项目",
+          "type": "科研项目",
+          "status": "进行中",
+          "role": "参与者",
+          "field": "统计建模",
+          "base_score": 3,
+          "status_factor": 0.6,
+          "contribution_factor": 0.5,
+          "counted": true,
+          "match_level": "related",
+          "match_factor": 0.7,
+          "score": 0.63,
+          "reason": "3 × 0.6 × 0.5 × 0.7 = 0.63"
+        }
+      ],
+      "reasons": [
+        "按成果 ID 去重后累计，最多 10 分"
+      ]
+    }
+  },
+  "pending_reasons": [],
+  "notices": [
+    "实验性人工规则，尚未用真实申请结果校准；英语档位不是官方考试等值换算。",
+    "内置学校全部为虚构演示数据，不代表真实院校评级。用于实际学生前，请录入经团队确认的学校及专业分档。",
+    "专业与研究方向为演示映射，可按业务需要维护；匹配采用显式配置，不猜测未录入的方向。",
+    "本结果用于综合评价，不是录取概率；不判断推免资格或目标项目的硬性申请门槛。"
+  ]
+}

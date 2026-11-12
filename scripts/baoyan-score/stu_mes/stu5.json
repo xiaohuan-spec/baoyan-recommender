@@ -1,0 +1,13 @@
+{
+  "name": "学生5：双一流无加分项",
+  "school_name": "示例双一流大学",
+  "undergraduate_major": "人工智能",
+  "target_major": "人工智能",
+  "ranking": {
+    "position": 15,
+    "total": 100
+  },
+  "english": [],
+  "competitions": [],
+  "research": []
+}

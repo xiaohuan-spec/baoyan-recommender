@@ -217,6 +217,13 @@ input.input-error { border-color: var(--danger); }
   margin-bottom: 20px;
 }
 
+.notice-muted {
+  background: #f8fafc;
+  border-color: var(--border);
+  color: var(--muted);
+  font-size: 12px;
+}
+
 .bucket-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 .bucket { border-radius: 12px; border: 1px solid var(--border); overflow: hidden; display: flex; flex-direction: column; }
 .bucket-head { padding: 10px 14px; color: #fff; font-weight: 600; display: flex; justify-content: space-between; align-items: center; font-size: 15px; }

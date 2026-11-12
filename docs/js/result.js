@@ -40,15 +40,19 @@
   function scoreHtml(score) {
     var total = score ? score.total : null;
     var breakdown = (score && score.breakdown) || {};
+    var detail = (score && score.detail) || {};
     var items = Object.keys(DIM_LABELS).map(function (key) {
       var v = breakdown[key];
       return breakdownItemHtml(DIM_LABELS[key], v === null || v === undefined ? '待定' : v + ' 分');
     }).join('');
 
     if (total === null || total === undefined) {
+      var tag = detail.status === 'error'
+        ? '评分配置加载失败'
+        : (detail.pending_reasons && detail.pending_reasons.length ? '部分信息待确认' : '评分待定');
       return '<div class="score-panel">' +
         '<div class="score-total-row"><span class="score-total">--</span><span class="score-unit">分</span>' +
-        '<span class="score-placeholder-tag">评分算法待实现</span></div>' +
+        '<span class="score-placeholder-tag">' + esc(tag) + '</span></div>' +
         '<div class="score-bar"><div class="score-bar-fill" style="width:0%"></div></div>' +
         '<div class="breakdown">' + items + '</div>' +
         '</div>';
@@ -62,25 +66,50 @@
       '</div>';
   }
 
+  function pendingHtml(score) {
+    var detail = (score && score.detail) || {};
+    var reasons = detail.pending_reasons || [];
+    if (!reasons.length) return '';
+    return '<div class="notice">' +
+      '<strong>以下信息待确认，补全后才能得出总分：</strong><br>' +
+      reasons.map(esc).join('<br>') + '</div>';
+  }
+
+  function noticesHtml(score) {
+    var detail = (score && score.detail) || {};
+    var notices = detail.notices || [];
+    if (!notices.length) return '';
+    return '<div class="notice notice-muted">' + notices.map(esc).join('<br>') + '</div>';
+  }
+
   function schoolCardHtml(s) {
     var prob = (s.probability === null || s.probability === undefined)
       ? '<span class="prob muted">概率待评估</span>'
       : '<span class="prob">预估录取 ' + esc(s.probability) + '%</span>';
+    var majorText = '推荐专业：' + esc(s.major || '—') +
+      (s.difficulty !== null && s.difficulty !== undefined ? '（难度 ' + esc(s.difficulty) + '）' : '');
     return '<div class="school-card">' +
       '<div class="s-name"><span>' + esc(s.name) + '</span>' + prob + '</div>' +
       '<span class="s-region">' + esc(s.region || '地区未标注') + '</span>' +
-      '<div class="s-major">推荐专业：' + esc(s.major || '—') + '</div>' +
+      '<div class="s-major">' + majorText + '</div>' +
       (s.remark ? '<div class="s-remark">' + esc(s.remark) + '</div>' : '') +
       '</div>';
   }
 
-  function bucketsHtml(recommendations, meta) {
+  function bucketsHtml(recommendations, meta, score) {
     var dataReady = meta && meta.dataReady;
+    var scorePending = score && (score.total === null || score.total === undefined);
     var cards = BUCKETS.map(function (bucket) {
       var list = (recommendations && recommendations[bucket.key]) || [];
-      var body = list.length
-        ? list.map(schoolCardHtml).join('')
-        : '<div class="empty-tip">' + (dataReady ? '该层次暂无推荐学校' : '待数据库与匹配算法实现') + '</div>';
+      var emptyTip;
+      if (!dataReady) {
+        emptyTip = '待学校数据库填充';
+      } else if (scorePending) {
+        emptyTip = '评分信息待确认，补全后生成推荐';
+      } else {
+        emptyTip = '该层次暂无匹配学校，可尝试放宽意向专业或地区';
+      }
+      var body = list.length ? list.map(schoolCardHtml).join('') : '<div class="empty-tip">' + emptyTip + '</div>';
       return '<div class="bucket ' + bucket.cls + '">' +
         '<div class="bucket-head"><span>' + bucket.title + '<small>' + bucket.desc + '</small></span>' +
         '<span class="bucket-count">' + list.length + ' 所</span></div>' +
@@ -92,11 +121,12 @@
 
   function buildHtml(data) {
     var meta = data.meta || {};
-    var parts = [headHtml(), scoreHtml(data.score)];
-    if (!meta.dataReady && meta.message) {
+    var parts = [headHtml(), scoreHtml(data.score), pendingHtml(data.score)];
+    if (meta.message) {
       parts.push('<div class="notice">' + esc(meta.message) + '</div>');
     }
-    parts.push(bucketsHtml(data.recommendations, meta));
+    parts.push(bucketsHtml(data.recommendations, meta, data.score));
+    parts.push(noticesHtml(data.score));
     return parts.join('');
   }
 

@@ -1,0 +1,164 @@
+{
+  "status": "ok",
+  "student_name": "学生4：985乙前30%",
+  "rule_version": "experimental-1.0.0",
+  "school_data_version": "generated-2026-11-11-v2",
+  "major_data_version": "expanded-2026-11-11",
+  "total_score": 77.13,
+  "max_score": 100,
+  "known_dimensions_score": 77.13,
+  "scores": {
+    "education": {
+      "status": "ok",
+      "score": 16,
+      "max_score": 20,
+      "school_name": "示例985乙大学",
+      "school_tags": [
+        "985",
+        "211",
+        "双一流"
+      ],
+      "undergraduate_major": "计算机科学与技术",
+      "school_level": "B",
+      "major_level": "较强",
+      "school_points": 13,
+      "major_points": 3,
+      "reasons": [
+        "学校 B 档 13 分 + 本科专业 较强 档 3 分"
+      ]
+    },
+    "ranking": {
+      "status": "ok",
+      "score": 30.0,
+      "max_score": 40,
+      "position": 30,
+      "total": 100,
+      "ratio": 0.3,
+      "percentile_text": "前 30.00%",
+      "curve": "B:较强",
+      "reasons": [
+        "排名比例 = 30 / 100；使用 B:较强 曲线，节点之间线性插值"
+      ]
+    },
+    "english": {
+      "status": "ok",
+      "score": 17,
+      "max_score": 20,
+      "selected": {
+        "type": "CET6",
+        "original_score": 560,
+        "score": 17
+      },
+      "items": [
+        {
+          "type": "CET4",
+          "original_score": 580,
+          "score": 12
+        },
+        {
+          "type": "CET6",
+          "original_score": 560,
+          "score": 17
+        }
+      ],
+      "reasons": [
+        "所有考试分别按分数档位换算，取最高分；不累计"
+      ]
+    },
+    "competition": {
+      "status": "ok",
+      "score": 7.5,
+      "max_score": 10,
+      "raw_score": 7.5,
+      "capped": false,
+      "items": [
+        {
+          "event": "示例算法竞赛",
+          "year": 2025,
+          "level": "国家级",
+          "prize": "三等奖",
+          "base_score": 6,
+          "counted": true,
+          "score": 6,
+          "reason": "本赛事本年度最高奖项，纳入计分"
+        },
+        {
+          "event": "示例算法竞赛",
+          "year": 2025,
+          "level": "省级",
+          "prize": "二等奖",
+          "base_score": 3,
+          "counted": false,
+          "score": 0,
+          "reason": "同一赛事同一年重复奖项，不重复计分"
+        },
+        {
+          "event": "示例创新竞赛",
+          "year": 2025,
+          "level": "校级",
+          "prize": "一等奖",
+          "base_score": 1.5,
+          "counted": true,
+          "score": 1.5,
+          "reason": "本赛事本年度最高奖项，纳入计分"
+        }
+      ],
+      "reasons": [
+        "按赛事名称与年度去重后累计，最多 10 分"
+      ]
+    },
+    "research": {
+      "status": "ok",
+      "score": 6.63,
+      "max_score": 10,
+      "target_major_used": "计算机科学与技术",
+      "raw_score": 6.63,
+      "known_items_score": 6.63,
+      "capped": false,
+      "items": [
+        {
+          "id": "paper-001",
+          "title": "示例机器学习论文",
+          "type": "期刊论文",
+          "status": "已发表",
+          "role": "第一作者",
+          "field": "机器学习",
+          "base_score": 6,
+          "status_factor": 1,
+          "contribution_factor": 1,
+          "counted": true,
+          "match_level": "direct",
+          "match_factor": 1,
+          "score": 6,
+          "reason": "6 × 1 × 1 × 1 = 6.00"
+        },
+        {
+          "id": "project-001",
+          "title": "示例统计建模项目",
+          "type": "科研项目",
+          "status": "进行中",
+          "role": "参与者",
+          "field": "统计建模",
+          "base_score": 3,
+          "status_factor": 0.6,
+          "contribution_factor": 0.5,
+          "counted": true,
+          "match_level": "related",
+          "match_factor": 0.7,
+          "score": 0.63,
+          "reason": "3 × 0.6 × 0.5 × 0.7 = 0.63"
+        }
+      ],
+      "reasons": [
+        "按成果 ID 去重后累计，最多 10 分"
+      ]
+    }
+  },
+  "pending_reasons": [],
+  "notices": [
+    "实验性人工规则，尚未用真实申请结果校准；英语档位不是官方考试等值换算。",
+    "本配置由 scripts/gen-school-levels.py 生成：学校名单为保研网院校库 169 所 + 手动补充 42 所常见保研高校（约 200 所）；level 按官方标签推导（985=A / 211=B / 双一流=C / 其余=D）；专业档次按学科评估推导（A+/A=强，A-/B+/B=较强），未查到评估等级的专业按「普通」保守计分，如与实际不符可直接在本文件中手动调整对应学校的 level 或 majors。前 6 所示例学校为演示数据。",
+    "专业与研究方向映射在 baoyan_score 原版 8 专业基础上扩充至 41 个常见本科/研究生专业；related 关系保持原版语义不变，未录入的专业仍提示待确认，可按需继续维护。",
+    "本结果用于综合评价，不是录取概率；不判断推免资格或目标项目的硬性申请门槛。"
+  ]
+}
