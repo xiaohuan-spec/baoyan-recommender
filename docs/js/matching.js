@@ -61,6 +61,45 @@
     '广州': '广东', '深圳': '广东', '广东（其他）': '广东'
   };
 
+  var SCHOOL_TIERS = {
+    '清华大学': 1, '北京大学': 1, '复旦大学': 1, '上海交通大学': 1, '浙江大学': 1,
+    '中国科学技术大学': 1, '南京大学': 1, '中国人民大学': 1,
+    '哈尔滨工业大学': 2, '西安交通大学': 2, '武汉大学': 2, '华中科技大学': 2,
+    '北京航空航天大学': 2, '同济大学': 2, '东南大学': 2, '北京理工大学': 2,
+    '南开大学': 2, '电子科技大学': 2, '中山大学': 2, '西北工业大学': 2,
+    '国防科技大学': 2, '华东师范大学': 2,
+    '厦门大学': 3, '四川大学': 3, '山东大学': 3, '吉林大学': 3, '中南大学': 3,
+    '华南理工大学': 3, '天津大学': 3, '大连理工大学': 3, '重庆大学': 3, '湖南大学': 3,
+    '东北大学': 4,
+    '西安电子科技大学': 5, '北京邮电大学': 5, '上海财经大学': 5, '中央财经大学': 5,
+    '北京交通大学': 6, '北京科技大学': 6, '华东理工大学': 6, '南京航空航天大学': 6,
+    '南京理工大学': 6, '苏州大学': 6, '南方科技大学': 6, '上海科技大学': 6,
+    '中国科学院大学': 6, '北京协和医学院': 6,
+    '首都医科大学': 7, '南京医科大学': 7, '南方医科大学': 7,
+    '中北大学': 7,
+    '示例985甲大学': 2, '示例985乙大学': 2, '示例211大学': 6,
+    '示例双一流大学': 6, '示例普通一本大学': 7
+  };
+
+  var DEFAULT_SCHOOL_TIER = 7;
+
+  function tierOf(schoolName) {
+    var name = String(schoolName || '').trim();
+    if (name && Object.prototype.hasOwnProperty.call(SCHOOL_TIERS, name)) {
+      return SCHOOL_TIERS[name];
+    }
+    var isCollege = name.indexOf('学院') >= 0;
+    if (!isCollege) {
+      for (var key in SCHOOL_TIERS) {
+        if (!Object.prototype.hasOwnProperty.call(SCHOOL_TIERS, key)) continue;
+        if (name && (name.indexOf(key) >= 0 || key.indexOf(name) >= 0)) {
+          return SCHOOL_TIERS[key];
+        }
+      }
+    }
+    return DEFAULT_SCHOOL_TIER;
+  }
+
   function normalizeRegion(region) {
     return REGION_ALIASES[region] || region;
   }
@@ -128,10 +167,11 @@
     }).slice(0, MAX_PER_BUCKET);
   }
 
-  function collect(schools, regions, total) {
+  function collect(schools, regions, total, maxTier) {
     var list = [];
     (schools || []).forEach(function (school) {
       if (regions.length && regions.indexOf(normalizeRegion(school.region)) < 0) return;
+      if (maxTier !== undefined && tierOf(school.name) > maxTier) return;
       (school.majors || []).forEach(function (m) {
         list.push({
           name: school.name,
@@ -149,14 +189,16 @@
   }
 
   function findHomeSchool(schools, homeName) {
-    var found = null;
+    var exact = null;
+    var fuzzy = null;
     (schools || []).forEach(function (s) {
-      if (found) return;
-      if (s.name === homeName || s.name.indexOf(homeName) >= 0 || homeName.indexOf(s.name) >= 0) {
-        found = s;
+      if (!homeName) return;
+      if (s.name === homeName) { exact = s; return; }
+      if (s.name.indexOf(homeName) >= 0 || homeName.indexOf(s.name) >= 0) {
+        if (fuzzy === null || s.name.length > fuzzy.name.length) fuzzy = s;
       }
     });
-    return found;
+    return exact || fuzzy;
   }
 
   function buildHomeEntry(schools, profile, kw, hasIntent) {
@@ -212,11 +254,15 @@
     var regions = (profile.intendedRegions || []).map(normalizeRegion);
     var kw = expandKeywords(profile.intendedMajor, majorRelations);
     var hasIntent = kw.direct.length > 0;
+    var homeTier = tierOf(profile.school);
+    var maxTier = homeTier + 1;
 
     var candidates = [];
     var majorFiltered = 0;
+    var tierDropped = 0;
     (schools || []).forEach(function (school) {
       if (regions.length && regions.indexOf(normalizeRegion(school.region)) < 0) return;
+      if (tierOf(school.name) > maxTier) { tierDropped++; return; }
       (school.majors || []).forEach(function (m) {
         var tier = hasIntent ? matchTier(m.name, kw) : 0;
         if (tier < 0) return;
@@ -236,7 +282,7 @@
 
     var note = '';
     if (hasIntent && majorFiltered === 0) {
-      candidates = collect(schools, regions, total);
+      candidates = collect(schools, regions, total, maxTier);
       note = '意向专业「' + profile.intendedMajor + '」未匹配到数据库专业，已展示全部专业，可尝试更换关键词';
     }
 
@@ -266,6 +312,9 @@
 
     var noteParts = [];
     if (note) noteParts.push(note);
+    if (tierDropped > 0) {
+      noteParts.push('已按保研惯例限制院校层次：不推荐明显低于本校层次的院校（最多下探一档），共过滤 ' + tierDropped + ' 所低层次院校');
+    }
     if (topTier && reach.length) {
       noteParts.push('顶尖院校（难度 90+）一律列为冲刺：顶尖项目面试与导师选择不确定性高，即使分数达标也按冲刺对待');
     }

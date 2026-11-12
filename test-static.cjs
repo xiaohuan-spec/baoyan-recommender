@@ -86,6 +86,45 @@ const checks = [
   const backendMatch = await backendMatching.matchSchools(score, schools, { school: '示例211大学', intendedMajor: '计算机科学与技术', intendedRegions: [] }, majorRelations);
   checks.push(['前后端匹配输出一致', JSON.stringify(backendMatch) === JSON.stringify(nationwide)]);
 
+  const llmScore = await backendScoring.calculateScore(core.normalizeProfile({
+    school: '示例211大学', major: '计算机科学与技术', rank: 5, totalStudents: 120,
+    english: [], competitions: [],
+    researches: [{ type: '期刊论文', title: '大模型论文', status: '已发表', role: '第一作者', field: '大模型' }],
+    intendedMajor: '计算机科学与技术'
+  }));
+  checks.push(['研究方向「大模型」计分不卡 pending', llmScore.total !== null && llmScore.breakdown.research === 6]);
+
+  const modScore = await backendScoring.calculateScore(core.normalizeProfile({
+    school: '示例211大学', major: '计算机科学与技术', rank: 5, totalStudents: 120,
+    english: [], competitions: [],
+    researches: [{ type: '期刊论文', title: '调制识别论文', status: '已发表', role: '第一作者', field: '通信信号调制识别' }],
+    intendedMajor: '信息与通信工程'
+  }));
+  checks.push(['研究方向「通信信号调制识别」信通方向计 6 分', modScore.total !== null && modScore.breakdown.research === 6]);
+
+  const weirdScore = await backendScoring.calculateScore(core.normalizeProfile({
+    school: '示例211大学', major: '计算机科学与技术', rank: 5, totalStudents: 120,
+    english: [], competitions: [],
+    researches: [{ type: '期刊论文', title: '奇怪方向', status: '已发表', role: '第一作者', field: '完全不认识的方向xyz' }],
+    intendedMajor: '计算机科学与技术'
+  }));
+  checks.push(['未识别方向按无关计分兜底（总分不卡 pending）', weirdScore.total !== null && weirdScore.breakdown.research === 1.2]);
+
+  const xdMatch = matching.matchSchools({ total: 78 }, schools, { school: '西安电子科技大学', intendedMajor: '信息与通信工程', intendedRegions: [] }, majorRelations);
+  const xdAll = xdMatch.reach.concat(xdMatch.stable, xdMatch.safety);
+  checks.push(['层次约束：西电学生推荐不含双非医科三校', xdAll.every((r) => r.isHome ||
+    ['首都医科大学', '南京医科大学', '南方医科大学'].indexOf(r.name) < 0)]);
+  checks.push(['层次约束提示出现在 note', xdMatch.note.indexOf('限制院校层次') >= 0]);
+
+  const hskMatch = matching.matchSchools({ total: 66 }, schools, { school: '华中科技大学', intendedMajor: '计算机科学与技术', intendedRegions: [] }, majorRelations);
+  const hskAll = hskMatch.reach.concat(hskMatch.stable, hskMatch.safety);
+  const lowTierBlacklist = ['东北大学', '西安电子科技大学', '北京邮电大学', '上海财经大学', '中央财经大学',
+    '北京交通大学', '北京科技大学', '华东理工大学', '南京航空航天大学', '南京理工大学', '苏州大学',
+    '南方科技大学', '上海科技大学', '中国科学院大学', '北京协和医学院',
+    '首都医科大学', '南京医科大学', '南方医科大学'];
+  checks.push(['层次约束：华科学生推荐只含 985（tier<=3）', hskAll.every((r) => r.isHome ||
+    lowTierBlacklist.indexOf(r.name) < 0)]);
+
   let failed = 0;
   for (const item of checks) {
     console.log((item[1] ? 'PASS' : 'FAIL') + ' - ' + item[0]);

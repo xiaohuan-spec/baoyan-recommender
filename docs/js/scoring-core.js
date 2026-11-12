@@ -276,9 +276,20 @@
              reasons: ['按赛事名称与年度去重后累计，最多 ' + cap + ' 分'] };
   }
 
+  var RESEARCH_KEYWORDS = {
+    '机器学习': ['大模型', 'LLM', 'AI', 'GPT', '深度学习', '神经网络', '智能', '算法', '视觉', '图像', '自然语言', 'NLP', '强化学习'],
+    '信号处理': ['调制', '信号', '通信', '无线', '雷达', '频谱', '5G', '6G', '信道', '编码'],
+    '统计建模': ['数据', '统计', '建模', '分析'],
+    '软件系统': ['软件', '开发', '程序', '系统', '后端', '前端', '数据库', 'Web'],
+    '机械设计': ['机械', '结构', '制造', '机器人'],
+    '经济研究': ['经济', '金融', '市场', '贸易'],
+    '文学研究': ['文学', '文化', '历史']
+  };
+
   function matchResearch(field, target, majorConfig, rules) {
     var targetName = canonicalMajor(target, majorConfig);
     var fieldInfo = null;
+    var matchMode = 'exact';
     for (var name in majorConfig.research_fields) {
       if (!Object.prototype.hasOwnProperty.call(majorConfig.research_fields, name)) continue;
       var info = majorConfig.research_fields[name];
@@ -287,7 +298,43 @@
         break;
       }
     }
-    if (targetName === null || fieldInfo === null) return { label: null, factor: null };
+    if (!fieldInfo) {
+      for (var name2 in majorConfig.research_fields) {
+        if (!Object.prototype.hasOwnProperty.call(majorConfig.research_fields, name2)) continue;
+        var info2 = majorConfig.research_fields[name2];
+        var words = [name2].concat(info2.aliases || []);
+        for (var w = 0; w < words.length; w++) {
+          var word = words[w];
+          if (word.length >= 2 && (field.indexOf(word) >= 0 || word.indexOf(field) >= 0)) {
+            fieldInfo = info2;
+            matchMode = 'fuzzy';
+            break;
+          }
+        }
+        if (fieldInfo) break;
+      }
+    }
+    if (!fieldInfo) {
+      for (var key in RESEARCH_KEYWORDS) {
+        if (!Object.prototype.hasOwnProperty.call(RESEARCH_KEYWORDS, key)) continue;
+        var kws = RESEARCH_KEYWORDS[key];
+        for (var k = 0; k < kws.length; k++) {
+          if (field.indexOf(kws[k]) >= 0 || kws[k].indexOf(field) >= 0) {
+            fieldInfo = majorConfig.research_fields[key];
+            matchMode = 'keyword';
+            break;
+          }
+        }
+        if (fieldInfo) break;
+      }
+    }
+    if (targetName === null) return { label: null, factor: null, match_mode: matchMode };
+    if (!fieldInfo) {
+      return {
+        label: 'unrelated', factor: rules.research.match_factors.unrelated,
+        match_mode: 'unrecognized', fallback: true
+      };
+    }
     var direct = fieldInfo.majors;
     var label;
     if (direct.indexOf(targetName) >= 0) {
@@ -300,8 +347,9 @@
       }
       label = overlap ? 'related' : 'unrelated';
     }
-    return { label: label, factor: rules.research.match_factors[label] };
+    return { label: label, factor: rules.research.match_factors[label], match_mode: matchMode };
   }
+
 
   function scoreResearch(student, rules, majorConfig) {
     var target = student.target_major || student.undergraduate_major;
@@ -348,14 +396,15 @@
         detail.match_level = match.label;
         detail.match_factor = match.factor;
         if (match.factor === null) {
-          var reason = '成果 ' + item.id + ' 的研究方向或目标专业未配置，请补充 major_relations.json';
+          var reason = '成果 ' + item.id + ' 的目标专业未配置，请检查意向专业填写';
           pending.push(reason);
           detail.score = null;
           detail.reason = reason;
         } else {
           var s = base * statusFactor * contribution * match.factor;
           detail.score = s;
-          detail.reason = base + ' × ' + statusFactor + ' × ' + contribution + ' × ' + match.factor + ' = ' + s.toFixed(2);
+          detail.reason = base + ' × ' + statusFactor + ' × ' + contribution + ' × ' + match.factor + ' = ' + s.toFixed(2) +
+            (match.fallback ? '（研究方向「' + item.field + '」未能识别，已按与目标专业无关计分）' : '');
         }
       }
       details.push(detail);
