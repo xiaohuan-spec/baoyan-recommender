@@ -46,19 +46,25 @@ const checks = [
 
   const schools = await backendDatabase.getSchools();
   const majorRelations = await backendScoring.getMajorRelations();
-  const nationwide = matching.matchSchools(score, schools, { intendedMajor: '计算机科学与技术', intendedRegions: [] }, majorRelations);
+  const nationwide = matching.matchSchools(score, schools, { school: '示例211大学', intendedMajor: '计算机科学与技术', intendedRegions: [] }, majorRelations);
   const allRecs = nationwide.reach.concat(nationwide.stable, nationwide.safety);
+  const extRecs = allRecs.filter((r) => !r.isHome);
   const inBucket = (list, lo, hi) => list.every((r) => r.difficulty >= lo && r.difficulty <= hi);
   checks.push(['匹配产出三档推荐', allRecs.length > 0 && nationwide.reach.length > 0 &&
     nationwide.stable.length > 0 && nationwide.safety.length > 0]);
-  checks.push(['分档阈值正确（85 分）', inBucket(nationwide.reach, 91, 100) &&
-    inBucket(nationwide.stable, 80, 90) && inBucket(nationwide.safety, 0, 79)]);
-  checks.push(['概率为 1-99 整数', allRecs.every((r) => Number.isInteger(r.probability) &&
+  checks.push(['顶尖院校一律可冲（难度 90+ 进冲档）', nationwide.reach.some((r) => r.difficulty >= 90)]);
+  checks.push(['分档阈值正确（85 分，冲档含 90+ 顶尖校）', inBucket(nationwide.reach, 90, 100) &&
+    inBucket(nationwide.stable, 80, 89) && inBucket(nationwide.safety.filter((r) => !r.isHome), 0, 79)]);
+  checks.push(['概率为 1-99 整数', extRecs.every((r) => Number.isInteger(r.probability) &&
     r.probability >= 1 && r.probability <= 99)]);
-  checks.push(['推荐字段完整', allRecs.every((r) => r.name && r.region && r.major &&
+  checks.push(['推荐字段完整', extRecs.every((r) => r.name && r.region && r.major &&
     typeof r.difficulty === 'number' && typeof r.remark === 'string')]);
-  checks.push(['每档最多 2 条', [nationwide.reach, nationwide.stable, nationwide.safety]
-    .every((list) => list.length <= 2)]);
+  checks.push(['每档最多 2 条（保档另含本校至多 3 条）', nationwide.reach.length <= 2 &&
+    nationwide.stable.length <= 2 && nationwide.safety.length <= 3]);
+  const homeEntry = nationwide.safety.find((r) => r.isHome);
+  checks.push(['本校固定保底在保档首位', nationwide.safety[0] && nationwide.safety[0].isHome &&
+    nationwide.safety[0].name === '示例211大学' && nationwide.safety[0].probability === 95]);
+  checks.push(['本校条目含保底说明', homeEntry && homeEntry.remark.indexOf('本校') >= 0]);
 
   const commMatch = matching.matchSchools(score, schools, { intendedMajor: '信息与通信工程', intendedRegions: [] }, majorRelations);
   const commAll = commMatch.reach.concat(commMatch.stable, commMatch.safety);
@@ -73,7 +79,11 @@ const checks = [
   checks.push(['评分待确认时返回空三档+提示', pendingMatch.reach.length === 0 &&
     pendingMatch.stable.length === 0 && pendingMatch.safety.length === 0 && pendingMatch.note.length > 0]);
 
-  const backendMatch = await backendMatching.matchSchools(score, schools, { intendedMajor: '计算机科学与技术', intendedRegions: [] }, majorRelations);
+  const gdSchools = matching.matchSchools(score, schools, { school: '示例211大学', intendedMajor: '计算机科学与技术', intendedRegions: ['广东'] }, majorRelations);
+  checks.push(['本校保底不受意向地区过滤', gdSchools.safety[0] && gdSchools.safety[0].isHome &&
+    gdSchools.safety.every((r) => r.isHome || r.region === '广东')]);
+
+  const backendMatch = await backendMatching.matchSchools(score, schools, { school: '示例211大学', intendedMajor: '计算机科学与技术', intendedRegions: [] }, majorRelations);
   checks.push(['前后端匹配输出一致', JSON.stringify(backendMatch) === JSON.stringify(nationwide)]);
 
   let failed = 0;

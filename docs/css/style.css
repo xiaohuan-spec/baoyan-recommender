@@ -236,6 +236,8 @@ input.input-error { border-color: var(--danger); }
 
 .school-card { border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
 .school-card .s-name { font-weight: 700; font-size: 15px; display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
+.tag-home { display: inline-block; font-size: 11px; font-weight: 600; color: #1d4ed8; background: #dbeafe; border-radius: 4px; padding: 1px 6px; margin-left: 6px; vertical-align: 2px; }
+.home-card { border-color: #93c5fd; background: #f8fbff; }
 .s-region { display: inline-block; font-size: 12px; color: var(--muted); background: #f3f4f6; border-radius: 4px; padding: 1px 8px; margin: 6px 0 4px; }
 .s-major { font-size: 13px; }
 .s-remark { font-size: 12px; color: var(--muted); margin-top: 6px; }

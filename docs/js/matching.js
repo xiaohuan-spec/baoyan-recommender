@@ -8,6 +8,16 @@
  *   -5 <= gap <= 5     -> stable（稳，与难度基本持平）
  *   -15 <= gap < -5    -> reach（冲，难度高于得分但值得尝试；差距超过 15 分不推荐）
  *
+ * 保研惯例规则（2026-11-12 加入，对照真实保研去向名单的普遍规律）：
+ *   1. 顶尖院校永远可冲：difficulty >= 90 的院校（清北复交浙一档）即使分差
+ *      落在「稳」甚至「保」区间，也一律归入冲——保研面试与导师选择的
+ *      主观性决定了没人能「稳」上顶尖院校；第一名 + 强竞赛科研的画像
+ *      冲刺目标就是清北这一档。分数差距超过 15 分时仍不推荐。
+ *   2. 本校保底：保研去向名单里最差的结果就是留本校，不存在比本校更差
+ *      的保底。本校条目（在库时取其实际专业，意向专业优先；不在库时生成
+ *      虚拟条目）固定置入保档首位，概率按惯例给 95%——本校生源的录取
+ *      门槛远低于数据库针对外校生源的难度系数。
+ *
  * 概率用 sigmoid 把分差映射为 1-99 的百分比（gap=0 为 50%），
  * 仅为基于分差的粗略估计，不是真实录取概率。
  *
@@ -44,6 +54,8 @@
   var REACH_LIMIT = 15;
   var MAX_PER_BUCKET = 2;
   var SIGMOID_K = 0.18;
+  var TOP_TIER_DIFFICULTY = 90;
+  var HOME_PROBABILITY = 95;
 
   var REGION_ALIASES = {
     '广州': '广东', '深圳': '广东', '广东（其他）': '广东'
@@ -136,6 +148,58 @@
     return list;
   }
 
+  function findHomeSchool(schools, homeName) {
+    var found = null;
+    (schools || []).forEach(function (s) {
+      if (found) return;
+      if (s.name === homeName || s.name.indexOf(homeName) >= 0 || homeName.indexOf(s.name) >= 0) {
+        found = s;
+      }
+    });
+    return found;
+  }
+
+  function buildHomeEntry(schools, profile, kw, hasIntent) {
+    var homeName = String(profile.school || '').trim();
+    if (!homeName) return null;
+    var homeSchool = findHomeSchool(schools, homeName);
+    var intended = splitKeywords(profile.intendedMajor)[0] ||
+      String(profile.major || '').trim() || '—';
+    var entry = {
+      name: homeSchool ? homeSchool.name : homeName,
+      region: homeSchool ? homeSchool.region : null,
+      major: intended,
+      probability: HOME_PROBABILITY,
+      remark: '本校生源保底：按保研惯例，有推免资格基本可留本校',
+      difficulty: null,
+      matchTier: 0,
+      isHome: true,
+      gap: null
+    };
+    if (homeSchool) {
+      var majors = homeSchool.majors || [];
+      var picked = null;
+      if (hasIntent) {
+        for (var i = 0; i < majors.length; i++) {
+          if (matchTier(majors[i].name, kw) === 0) { picked = majors[i]; break; }
+        }
+        if (!picked) {
+          for (var j = 0; j < majors.length; j++) {
+            if (matchTier(majors[j].name, kw) === 1) { picked = majors[j]; break; }
+          }
+        }
+      } else if (majors.length) {
+        picked = majors[0];
+      }
+      if (picked) {
+        entry.major = picked.name;
+        entry.difficulty = picked.difficulty;
+        entry.remark = (picked.remark ? picked.remark + '；' : '') + entry.remark;
+      }
+    }
+    return entry;
+  }
+
   function matchSchools(score, schools, profile, majorRelations) {
     profile = profile || {};
     var empty = { reach: [], stable: [], safety: [], note: '' };
@@ -179,7 +243,9 @@
     var reach = [], stable = [], safety = [];
     candidates.forEach(function (c) {
       c.probability = estimateProbability(c.gap);
-      if (c.gap > STABLE_BAND) {
+      if (c.difficulty >= TOP_TIER_DIFFICULTY && c.gap >= -REACH_LIMIT) {
+        reach.push(c);
+      } else if (c.gap > STABLE_BAND) {
         safety.push(c);
       } else if (c.gap >= -STABLE_BAND) {
         stable.push(c);
@@ -188,11 +254,33 @@
       }
     });
 
+    var topTier = candidates.some(function (c) { return c.difficulty >= TOP_TIER_DIFFICULTY; });
+    var homeEntry = buildHomeEntry(schools, profile, kw, hasIntent);
+    if (homeEntry) {
+      [reach, stable, safety].forEach(function (list) {
+        for (var i = list.length - 1; i >= 0; i--) {
+          if (list[i].name === homeEntry.name) list.splice(i, 1);
+        }
+      });
+    }
+
+    var noteParts = [];
+    if (note) noteParts.push(note);
+    if (topTier && reach.length) {
+      noteParts.push('顶尖院校（难度 90+）一律列为冲刺：顶尖项目面试与导师选择不确定性高，即使分数达标也按冲刺对待');
+    }
+    if (homeEntry) {
+      noteParts.push('保底固定本校「' + homeEntry.name + '」（预估 95%）：保研去向中最差结果是留本校，不存在比本校更差的保底');
+    }
+
+    var safetySorted = sortBucket(safety, 1);
+    if (homeEntry) safetySorted.unshift(homeEntry);
+
     return {
-      reach: sortBucket(reach, -1),
+      reach: sortBucket(reach, 1),
       stable: sortBucket(stable, -1),
-      safety: sortBucket(safety, 1),
-      note: note
+      safety: safetySorted,
+      note: noteParts.join('；')
     };
   }
 

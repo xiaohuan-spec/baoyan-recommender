@@ -88,9 +88,11 @@
       : '<span class="prob">预估录取 ' + esc(s.probability) + '%</span>';
     var majorText = '推荐专业：' + esc(s.major || '—') +
       (s.difficulty !== null && s.difficulty !== undefined ? '（难度 ' + esc(s.difficulty) + '）' : '');
-    return '<div class="school-card">' +
-      '<div class="s-name"><span>' + esc(s.name) + '</span>' + prob + '</div>' +
-      '<span class="s-region">' + esc(s.region || '地区未标注') + '</span>' +
+    var nameHtml = esc(s.name) + (s.isHome ? '<span class="tag-home">本校</span>' : '');
+    var region = s.region || (s.isHome ? '本校' : '地区未标注');
+    return '<div class="school-card' + (s.isHome ? ' home-card' : '') + '">' +
+      '<div class="s-name"><span>' + nameHtml + '</span>' + prob + '</div>' +
+      '<span class="s-region">' + esc(region) + '</span>' +
       '<div class="s-major">' + majorText + '</div>' +
       (s.remark ? '<div class="s-remark">' + esc(s.remark) + '</div>' : '') +
       '</div>';
