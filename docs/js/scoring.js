@@ -32,8 +32,19 @@
     });
   }
 
+  function getEmbedded() {
+    var g = typeof window !== 'undefined' ? window
+      : (typeof self !== 'undefined' ? self : globalThis);
+    return g && g.__BAOYAN_DATA__;
+  }
+
   function loadConfig() {
     if (configCache) return Promise.resolve(configCache);
+    var embedded = getEmbedded();
+    if (embedded && embedded.scoringRules && embedded.schoolMajorLevels && embedded.majorRelations) {
+      configCache = { rules: embedded.scoringRules, schools: embedded.schoolMajorLevels, majors: embedded.majorRelations };
+      return Promise.resolve(configCache);
+    }
     return Promise.all(CONFIG_FILES.map(fetchJson)).then(function (configs) {
       configCache = { rules: configs[0], schools: configs[1], majors: configs[2] };
       return configCache;
